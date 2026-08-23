@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Turnos · Peluquería &amp; Barbería</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#2F5D50">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Turnos">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{
+  --ink:#1E2A24;
+  --paper:#F8F6F1;
+  --paper-2:#FFFFFF;
+  --paper-3:#EFEBE1;
+  --line:#E2DDD0;
+  --muted:#7A7568;
+  --primary:#2F5D50;
+  --primary-ink:#FFFFFF;
+  --primary-soft:#E3ECE8;
+  --gold:#B8912A;
+  --gold-soft:#F3E8C8;
+  --danger:#B5482F;
+  --danger-soft:#F6E2DB;
+  --whatsapp:#2FA86A;
+  --busy:#DCD6C4;
+  --closed:#E9C9B8;
+  --radius-s:10px;
+  --radius-m:16px;
+  --radius-l:22px;
+  --shadow: 0 2px 10px rgba(30,42,36,0.06), 0 1px 2px rgba(30,42,36,0.05);
+  --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+[data-theme="dark"]{
+  --ink:#EFEDE3;
+  --paper:#14201C;
+  --paper-2:#1B2A24;
+  --paper-3:#22332C;
+  --line:#2C3E36;
+  --muted:#93A69C;
+  --primary:#4E9280;
+  --primary-ink:#0D1512;
+  --primary-soft:#213631;
+  --gold:#D9B44E;
+  --gold-soft:#332B16;
+  --danger:#D97B62;
+  --danger-soft:#3A2420;
+  --whatsapp:#4FCB8B;
+  --busy:#33473D;
+  --closed:#4A362B;
+  --shadow: 0 2px 14px rgba(0,0,0,0.35);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0; height:100%;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  overscroll-behavior-y: none;
+  transition: background .25s ease, color .25s ease;
+}
+#app{max-width:520px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; position:relative;}
+h1,h2,h3{font-family:var(--font-display); font-weight:700; margin:0;}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+.hidden{display:none !important;}
+
+/* ---------- Top bar / logo ---------- */
+.topbar{
+  display:flex; align-items:center; gap:10px;
+  padding:16px 18px 6px;
+}
+.logo-mark{width:34px; height:34px; flex-shrink:0;}
+.brand-name{font-family:var(--font-display); font-size:17px; font-weight:700; letter-spacing:.2px;}
+.brand-sub{font-size:11px; color:var(--muted); margin-top:-2px;}
+
+/* ---------- Views ---------- */
+.view{
+  flex:1; padding:6px 18px 90px; display:none;
+  animation: fadeSlide .28s ease;
+}
+.view.active{display:block;}
+@keyframes fadeSlide{
+  from{opacity:0; transform:translateY(8px);}
+  to{opacity:1; transform:translateY(0);}
+}
+.screen-title{font-size:22px; margin-bottom:2px;}
+.screen-sub{font-size:13px; color:var(--muted); margin-bottom:14px;}
+
+/* ---------- Buttons ---------- */
+.btn{
+  border:none; border-radius:var(--radius-s);
+  padding:11px 16px; font-size:14px; font-weight:600;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+}
+.btn:active{transform:scale(0.96);}
+.btn-primary{background:var(--primary); color:var(--primary-ink); box-shadow:var(--shadow);}
+.btn-ghost{background:var(--paper-2); color:var(--ink); border:1px solid var(--line);}
+.btn-whatsapp{background:var(--whatsapp); color:#08160F; width:100%;}
+.btn-danger{background:var(--danger-soft); color:var(--danger);}
+.btn-block{width:100%;}
+.btn-sm{padding:7px 12px; font-size:12.5px; border-radius:9px;}
+.fab-add{
+  position:fixed; z-index:20;
+  right:calc((100vw - 520px)/2 + 18px); bottom:96px;
+  width:52px; height:52px; border-radius:50%;
+  background:var(--primary); color:var(--primary-ink); border:none;
+  box-shadow:0 6px 16px rgba(47,93,80,0.35);
+  display:flex; align-items:center; justify-content:center; font-size:24px;
+  transition: transform .15s ease;
+}
+.fab-add:active{transform:scale(0.9) rotate(90deg);}
+@media (max-width:520px){ .fab-add{right:18px;} }
+
+/* ---------- Cards / lists ---------- */
+.card{
+  background:var(--paper-2); border:1px solid var(--line); border-radius:var(--radius-m);
+  padding:14px 16px; box-shadow:var(--shadow);
+}
+.list-row{
+  display:flex; align-items:center; gap:12px; padding:12px 4px;
+  border-bottom:1px solid var(--line); transition: background .15s ease;
+}
+.list-row:last-child{border-bottom:none;}
+.list-row:active{background:var(--paper-3);}
+.avatar{
+  width:38px; height:38px; border-radius:50%; flex-shrink:0;
+  background:var(--gold-soft); color:var(--gold);
+  display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;
+}
+.chip{font-size:10.5px; padding:3px 9px; border-radius:20px; font-weight:600;}
+.chip-pending{background:var(--gold-soft); color:var(--gold);}
+.chip-paid{background:var(--primary-soft); color:var(--primary);}
+
+/* ---------- Search ---------- */
+.search-wrap{position:relative; margin-bottom:14px;}
+.search-wrap input{
+  width:100%; padding:10px 12px 10px 36px; border-radius:12px;
+  border:1px solid var(--line); background:var(--paper-2); color:var(--ink); font-size:13.5px;
+}
+.search-icon{position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:15px;}
+
+/* ---------- Hoy ---------- */
+.appt-card{
+  display:flex; align-items:center; gap:12px; padding:12px 14px;
+  background:var(--paper-2); border:1px solid var(--line); border-radius:14px; margin-bottom:8px;
+  transition: transform .12s ease;
+}
+.appt-card:active{transform:scale(0.98);}
+.appt-time{width:52px; font-weight:700; font-size:13.5px; color:var(--ink);}
+.appt-info p{margin:0;}
+.appt-client{font-size:14px; font-weight:600;}
+.appt-service{font-size:12px; color:var(--muted); margin-top:1px;}
+.free-gap{font-size:11.5px; color:var(--muted); padding:3px 6px; margin-bottom:4px;}
+.pause-note{text-align:center; font-size:11.5px; color:var(--muted); border-top:1px dashed var(--line); padding:8px 0; margin:6px 0;}
+.day-summary{
+  margin-top:16px; padding:12px 14px; background:var(--paper-3); border-radius:14px;
+  text-align:center; font-size:13px; color:var(--muted);
+}
+
+/* ---------- Semana ---------- */
+.week-toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+.legend{display:flex; gap:12px; font-size:11px; margin-bottom:10px; color:var(--muted); flex-wrap:wrap;}
+.legend span.dot{width:9px; height:9px; border-radius:3px; display:inline-block; margin-right:4px; vertical-align:-1px;}
+.week-config{
+  background:var(--paper-3); border-radius:12px; padding:10px 12px; margin-bottom:12px;
+}
+.week-config-title{font-size:11.5px; font-weight:700; color:var(--muted); margin-bottom:8px;}
+.time-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px; font-size:12px;}
+.time-row label{min-width:52px; color:var(--muted);}
+.time-row input[type=time]{border:1px solid var(--line); border-radius:8px; padding:4px 6px; font-size:12px; background:var(--paper-2); color:var(--ink);}
+.grid-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:14px; background:var(--paper-2);}
+#weekGrid{display:grid;}
+.g-headcell{font-size:11px; font-weight:700; text-align:center; padding:8px 2px; border-bottom:1px solid var(--line); border-left:1px solid var(--line); cursor:pointer;}
+.g-timecell{font-size:10px; color:var(--muted); padding:4px; text-align:right; border-top:1px solid var(--line);}
+.g-slot{height:28px; border-top:1px solid var(--line); border-left:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:9.5px; font-weight:700; cursor:pointer; transition:filter .12s ease;}
+.g-slot:active{filter:brightness(0.92);}
+
+/* ---------- Balance ---------- */
+.balance-hero{padding:16px 18px; margin-bottom:12px;}
+.balance-row{display:flex; justify-content:space-between; align-items:baseline;}
+.balance-amt{font-size:24px; font-weight:700;}
+.balance-label{font-size:12px; color:var(--muted);}
+.tab-row{display:flex; gap:8px; margin-bottom:12px;}
+.tab-btn{flex:1; padding:7px; font-size:12.5px; border-radius:9px; border:1px solid var(--line); background:var(--paper-2); color:var(--muted); font-weight:600;}
+.tab-btn.active{background:var(--primary); color:var(--primary-ink); border-color:var(--primary);}
+.stat-line{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px;}
+.stat-line:last-child{border-bottom:none;}
+
+/* ---------- Ajustes ---------- */
+.settings-item{display:flex; align-items:center; gap:12px; padding:13px 14px; border-bottom:1px solid var(--line);}
+.settings-item:last-child{border-bottom:none;}
+.settings-icon{font-size:18px; color:var(--muted); width:22px; text-align:center;}
+.settings-title{font-size:14px; font-weight:600;}
+.settings-sub{font-size:11.5px; color:var(--muted); margin-top:1px;}
+.toggle{width:42px; height:24px; border-radius:12px; background:var(--line); position:relative; transition:background .2s ease; flex-shrink:0;}
+.toggle.on{background:var(--primary);}
+.toggle-knob{width:20px; height:20px; border-radius:50%; background:#fff; position:absolute; top:2px; left:2px; box-shadow:0 1px 2px rgba(0,0,0,0.2); transition:left .2s ease;}
+.toggle.on .toggle-knob{left:20px;}
+
+/* ---------- Bottom nav ---------- */
+.bottomnav{
+  position:fixed; left:0; right:0; bottom:0; z-index:15;
+  display:flex; justify-content:center;
+}
+.bottomnav-inner{
+  width:100%; max-width:520px; display:flex; justify-content:space-around; align-items:center;
+  padding:9px 4px calc(9px + env(safe-area-inset-bottom)); background:var(--paper-2);
+  border-top:1px solid var(--line); box-shadow:0 -2px 10px rgba(0,0,0,0.05);
+}
+.nav-btn{
+  background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:2px;
+  color:var(--muted); font-size:10px; font-weight:600; padding:4px 8px; border-radius:10px;
+  transition: color .15s ease, transform .12s ease;
+}
+.nav-btn:active{transform:scale(0.9);}
+.nav-btn.active{color:var(--primary);}
+.nav-icon{font-size:19px;}
+
+/* ---------- Modal / sheet ---------- */
+.sheet-backdrop{
+  position:fixed; inset:0; background:rgba(20,25,22,0.45); z-index:30;
+  display:flex; align-items:flex-end; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity .22s ease;
+}
+.sheet-backdrop.show{opacity:1; pointer-events:auto;}
+.sheet{
+  width:100%; max-width:520px; max-height:88vh; overflow-y:auto;
+  background:var(--paper); border-radius:22px 22px 0 0; padding:18px 20px 26px;
+  transform:translateY(100%); transition:transform .28s cubic-bezier(.32,.72,0,1);
+}
+.sheet-backdrop.show .sheet{transform:translateY(0);}
+.sheet-handle{width:38px; height:4px; border-radius:2px; background:var(--line); margin:0 auto 14px;}
+.sheet-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+.sheet-close{background:none; border:none; font-size:20px; color:var(--muted); padding:4px;}
+.field{margin-bottom:12px;}
+.field label{font-size:12px; color:var(--muted); display:block; margin-bottom:4px;}
+.field input, .field select, .field textarea{
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+  background:var(--paper-2); color:var(--ink); font-size:13.5px;
+}
+.field textarea{resize:vertical; min-height:56px;}
+.field-row{display:flex; gap:10px;}
+.field-row .field{flex:1;}
+.hint-box{
+  display:flex; align-items:center; gap:6px; background:var(--paper-3); border-radius:9px;
+  padding:8px 10px; font-size:11.5px; color:var(--muted); margin-bottom:12px;
+}
+.warn-box{
+  display:flex; align-items:flex-start; gap:6px; background:var(--danger-soft); color:var(--danger);
+  border-radius:9px; padding:8px 10px; font-size:11.5px; margin-bottom:12px;
+}
+.contact-row{display:flex; gap:8px;}
+.contact-row input{flex:1;}
+.contact-row .btn{white-space:nowrap; flex-shrink:0;}
+
+/* ---------- Confirm dialog ---------- */
+.confirm-box{text-align:center; padding-top:4px;}
+.confirm-icon{font-size:30px; color:var(--danger); margin-bottom:8px;}
+.confirm-actions{display:flex; gap:10px; margin-top:16px;}
+.confirm-actions .btn{flex:1;}
+
+/* ---------- Client detail sheet ---------- */
+.detail-header{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+.detail-name{font-size:16px; font-weight:700;}
+.detail-phone{font-size:12.5px; color:var(--muted); margin-top:1px;}
+.detail-block{background:var(--paper-3); border-radius:10px; padding:10px 12px; margin-bottom:10px;}
+.detail-block-label{font-size:11px; color:var(--muted); margin-bottom:2px;}
+.detail-block-value{font-size:13.5px; font-weight:600;}
+.note-box{background:var(--gold-soft); border:1px solid var(--gold); border-radius:9px; padding:8px 12px; margin-bottom:10px;}
+.note-box .lbl{font-size:10.5px; color:var(--gold); font-weight:700; margin-bottom:2px;}
+.note-box .txt{font-size:12.5px; color:var(--ink);}
+.hist-row{display:flex; justify-content:space-between; padding:5px 0; font-size:12px;}
+
+.empty-state{text-align:center; padding:40px 10px; color:var(--muted); font-size:13px;}
+
+.toast{
+  position:fixed; left:50%; bottom:92px; transform:translateX(-50%) translateY(20px);
+  background:var(--ink); color:var(--paper); padding:11px 18px; border-radius:12px;
+  font-size:13px; font-weight:500; box-shadow:0 6px 18px rgba(0,0,0,0.25);
+  z-index:60; opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+  max-width:80%; text-align:center;
+}
+[data-theme="dark"] .toast{ background:var(--gold); color:#14201C; }
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body data-theme="light">
+<div id="app">
+
+  <div class="topbar">
+    <svg class="logo-mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="24" r="23" stroke="var(--primary)" stroke-width="2"/>
+      <g stroke="var(--gold)" stroke-width="2" stroke-linecap="round" fill="none">
+        <path d="M14 16c6 4 12 10 16 16"/>
+        <path d="M34 16c-6 4-12 10-16 16"/>
+        <circle cx="14" cy="15" r="2.6" fill="var(--gold)"/>
+        <circle cx="14" cy="33" r="2.6" fill="var(--gold)"/>
+      </g>
+      <path d="M17 24h14" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div class="brand-name" id="brandName">Turnos</div>
+      <div class="brand-sub">Peluquería &amp; Barbería</div>
+    </div>
+  </div>
+
+  <!-- ===================== HOY ===================== -->
+  <section class="view active" id="view-hoy">
+    <div class="screen-title" id="hoyTitle">Hoy</div>
+    <div class="screen-sub" id="hoySub"></div>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="hoySearch" placeholder="Buscar cliente">
+    </div>
+    <div id="hoyList"></div>
+    <div class="day-summary" id="hoySummary"></div>
+  </section>
+
+  <!-- ===================== SEMANA ===================== -->
+  <section class="view" id="view-semana">
+    <div class="week-toolbar">
+      <div>
+        <div class="screen-title" style="font-size:19px;">Semana</div>
+        <div class="screen-sub" id="weekRange" style="margin-bottom:0;"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" id="weekPrev">‹</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--paper-2); border:1px solid var(--line);"></span>Libre</span>
+      <span><span class="dot" style="background:var(--busy);"></span>Ocupado</span>
+      <span><span class="dot" style="background:var(--closed);"></span>Cerrado</span>
+    </div>
+
+    <div class="week-config">
+      <div class="week-config-title">HORARIO DE ESTA SEMANA</div>
+      <div class="time-row">
+        <label>Mañana</label>
+        <input type="time" id="cfg-m1" value="08:00">
+        <span>a</span>
+        <input type="time" id="cfg-m2" value="12:00">
+      </div>
+      <div class="time-row">
+        <label>Tarde</label>
+        <input type="time" id="cfg-t1" value="16:00">
+        <span>a</span>
+        <input type="time" id="cfg-t2" value="20:00">
+      </div>
+    </div>
+
+    <div class="grid-wrap">
+      <div id="weekGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== CLIENTES ===================== -->
+  <section class="view" id="view-clientes">
+    <div class="screen-title">Clientes</div>
+    <div class="screen-sub">&nbsp;</div>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="clientSearch" placeholder="Buscar cliente">
+    </div>
+    <div class="card" style="padding:4px 12px;">
+      <div id="clientList"></div>
+    </div>
+    <button class="btn btn-ghost btn-block" id="btnNewClient" style="margin-top:12px;">+ Nuevo cliente</button>
+  </section>
+
+  <!-- ===================== BALANCE ===================== -->
+  <section class="view" id="view-balance">
+    <div class="screen-title">Balance</div>
+    <div class="screen-sub">&nbsp;</div>
+
+    <div class="card balance-hero">
+      <div class="balance-label" style="margin-bottom:6px;">Hoy</div>
+      <div class="balance-row"><span class="balance-amt" id="balHoyCobrado">$0</span><span class="balance-label">cobrado</span></div>
+      <div class="balance-row" style="margin-top:4px;"><span class="balance-amt" style="font-size:16px; color:var(--gold);" id="balHoyPendiente">$0</span><span class="balance-label">pendiente</span></div>
+    </div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" data-range="week">Semana</button>
+      <button class="tab-btn" data-range="month">Mes</button>
+    </div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div class="stat-line"><span>Total cobrado</span><span id="balCobrado" style="font-weight:700;">$0</span></div>
+      <div class="stat-line"><span>Total pendiente</span><span id="balPendiente" style="font-weight:700; color:var(--gold);">$0</span></div>
+      <div class="stat-line"><span>Turnos realizados</span><span id="balCount" style="font-weight:700;">0</span></div>
+    </div>
+
+    <div class="screen-sub" style="margin-bottom:8px;">Cobros pendientes</div>
+    <div id="pendingList"></div>
+  </section>
+
+  <!-- ===================== AJUSTES ===================== -->
+  <section class="view" id="view-ajustes">
+    <div class="screen-title">Ajustes</div>
+    <div class="screen-sub">&nbsp;</div>
+    <div class="card" style="padding:0;">
+
+      <div class="settings-item">
+        <div class="settings-icon">☾</div>
+        <div style="flex:1;">
+          <div class="settings-title">Apariencia</div>
+          <div class="settings-sub" id="themeLabel">Modo claro</div>
+        </div>
+        <div class="toggle" id="themeToggle"><div class="toggle-knob"></div></div>
+      </div>
+
+      <div class="settings-item" id="btnBackup">
+        <div class="settings-icon">⇩</div>
+        <div style="flex:1;">
+          <div class="settings-title">Hacer backup</div>
+          <div class="settings-sub" id="backupSub">Descarga tus datos</div>
+        </div>
+        <div class="settings-icon">›</div>
+      </div>
+
+      <div class="settings-item" id="btnRestore">
+        <div class="settings-icon">⇧</div>
+        <div style="flex:1;">
+          <div class="settings-title">Restaurar backup</div>
+          <div class="settings-sub">Cargar un archivo guardado</div>
+        </div>
+        <div class="settings-icon">›</div>
+      </div>
+      <input type="file" id="restoreFile" accept="application/json" class="hidden">
+
+      <div class="settings-item" id="btnSchedule">
+        <div class="settings-icon">⏱</div>
+        <div style="flex:1;">
+          <div class="settings-title">Horario habitual</div>
+          <div class="settings-sub" id="scheduleSub"></div>
+        </div>
+        <div class="settings-icon">›</div>
+      </div>
+
+      <div class="settings-item" id="btnSalonName">
+        <div class="settings-icon">✎</div>
+        <div style="flex:1;">
+          <div class="settings-title">Nombre del negocio</div>
+          <div class="settings-sub" id="salonNameSub">Turnos</div>
+        </div>
+        <div class="settings-icon">›</div>
+      </div>
+
+      <div class="settings-item" id="btnMessage">
+        <div class="settings-icon">💬</div>
+        <div style="flex:1;">
+          <div class="settings-title">Mensaje de recordatorio</div>
+          <div class="settings-sub">Editar el texto del WhatsApp</div>
+        </div>
+        <div class="settings-icon">›</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== BOTTOM NAV ===================== -->
+  <div class="bottomnav">
+    <div class="bottomnav-inner">
+      <button class="nav-btn active" data-view="hoy"><span class="nav-icon">☀</span>Hoy</button>
+      <button class="nav-btn" data-view="semana"><span class="nav-icon">▦</span>Semana</button>
+      <button class="nav-btn" data-view="clientes"><span class="nav-icon">☺</span>Clientes</button>
+      <button class="nav-btn" data-view="balance"><span class="nav-icon">◫</span>Balance</button>
+      <button class="nav-btn" data-view="ajustes"><span class="nav-icon">⚙</span>Ajustes</button>
+    </div>
+  </div>
+
+  <button class="fab-add" id="fabAdd">+</button>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ===================== SHEET: NUEVO TURNO ===================== -->
+  <div class="sheet-backdrop" id="sheetTurno">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-top">
+        <h3 id="turnoSheetTitle">Nuevo turno</h3>
+        <button class="sheet-close" data-close="sheetTurno">✕</button>
+      </div>
+      <div class="warn-box hidden" id="overlapWarning">⚠ Este turno se superpone con otro ya cargado.</div>
+      <div class="field">
+        <label>Cliente</label>
+        <input type="text" id="f-clientName" placeholder="Nombre del cliente" list="clientNamesList">
+        <datalist id="clientNamesList"></datalist>
+      </div>
+      <div class="field">
+        <label>Teléfono</label>
+        <div class="contact-row">
+          <input type="tel" id="f-clientPhone" placeholder="Ej: 11 5555-1234">
+          <button class="btn btn-ghost btn-sm" id="btnPickContact">📇 Contactos</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Servicio</label>
+        <input type="text" id="f-service" placeholder="Ej: Corte y color">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Día</label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="field">
+          <label>Hora</label>
+          <select id="f-time"></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Duración</label>
+        <select id="f-duration">
+          <option value="30">30 min</option>
+          <option value="60">1 hora</option>
+          <option value="90">1 hora 30 min</option>
+          <option value="120">2 horas</option>
+          <option value="150">2 horas 30 min</option>
+          <option value="180">3 horas</option>
+          <option value="210">3 horas 30 min</option>
+          <option value="240">4 horas</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Precio (opcional)</label>
+        <input type="number" id="f-price" placeholder="$">
+      </div>
+      <div class="hint-box" id="durationHint">⏱ Ocupa 1 franja de media hora</div>
+      <button class="btn btn-primary btn-block" id="btnSaveTurno">Guardar turno</button>
+      <button class="btn btn-danger btn-block hidden" id="btnDeleteTurno" style="margin-top:8px;">Eliminar turno</button>
+    </div>
+  </div>
+
+  <!-- ===================== SHEET: CLIENTE DETALLE ===================== -->
+  <div class="sheet-backdrop" id="sheetCliente">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-top">
+        <h3>Cliente</h3>
+        <button class="sheet-close" data-close="sheetCliente">✕</button>
+      </div>
+      <div class="detail-header">
+        <div class="avatar" id="clientAvatar" style="width:46px; height:46px; font-size:15px;"></div>
+        <div>
+          <div class="detail-name" id="clientDetailName"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Teléfono</label>
+        <div class="contact-row">
+          <input type="tel" id="f-clientDetailPhone" placeholder="Ej: 11 5555-1234">
+          <button class="btn btn-ghost btn-sm" id="btnPickContactDetail">📇 Contactos</button>
+        </div>
+      </div>
+      <div class="detail-block hidden" id="clientTodayBlock">
+        <div class="detail-block-label">Turno de hoy</div>
+        <div class="detail-block-value" id="clientTodayValue"></div>
+      </div>
+      <div class="field">
+        <label>Notas</label>
+        <textarea id="f-clientNotes" placeholder="Ej: alérgico a tal producto, prefiere tal color..."></textarea>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line);">
+        <span style="font-size:13px; color:var(--muted);">Total de turnos</span>
+        <span id="clientHistCount" style="font-weight:700;">0</span>
+      </div>
+      <div id="clientHistList" style="margin-top:6px; margin-bottom:12px;"></div>
+      <button class="btn btn-primary btn-block" id="btnSaveClientNotes">Guardar cambios</button>
+      <button class="btn btn-whatsapp btn-block" id="btnWhatsapp" style="margin-top:8px;">💬 Enviar recordatorio por WhatsApp</button>
+      <button class="btn btn-danger btn-block" id="btnDeleteClient" style="margin-top:8px;">Eliminar cliente</button>
+    </div>
+  </div>
+
+  <!-- ===================== SHEET: NUEVO CLIENTE ===================== -->
+  <div class="sheet-backdrop" id="sheetNewClient">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-top">
+        <h3>Nuevo cliente</h3>
+        <button class="sheet-close" data-close="sheetNewClient">✕</button>
+      </div>
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" id="f-newClientName" placeholder="Nombre del cliente">
+      </div>
+      <div class="field">
+        <label>Teléfono (opcional)</label>
+        <div class="contact-row">
+          <input type="tel" id="f-newClientPhone" placeholder="Ej: 11 5555-1234">
+          <button class="btn btn-ghost btn-sm" id="btnPickContactNew">📇 Contactos</button>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-block" id="btnSaveNewClient">Guardar cliente</button>
+    </div>
+  </div>
+
+  <!-- ===================== SHEET: DÍA CERRADO ===================== -->
+  <div class="sheet-backdrop" id="sheetDay">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-top">
+        <h3 id="daySheetTitle">Martes 18</h3>
+        <button class="sheet-close" data-close="sheetDay">✕</button>
+      </div>
+      <div class="settings-item" style="border:1px solid var(--line); border-radius:12px; padding:12px 14px;">
+        <div style="flex:1;">
+          <div class="settings-title">Marcar como cerrado</div>
+          <div class="settings-sub">Feriado, vacaciones, etc.</div>
+        </div>
+        <div class="toggle" id="dayClosedToggle"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Motivo (opcional)</label>
+        <input type="text" id="f-closedReason" placeholder="Ej: Feriado nacional">
+      </div>
+      <button class="btn btn-primary btn-block" id="btnSaveDay">Guardar</button>
+    </div>
+  </div>
+
+  <!-- ===================== SHEET: HORARIO HABITUAL ===================== -->
+  <div class="sheet-backdrop" id="sheetSchedule">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-top"><h3>Horario habitual</h3><button class="sheet-close" data-close="sheetSchedule">✕</button></div>
+      <p style="font-size:12px; color:var(--muted); margin-top:0;">Se usa como punto de partida al abrir una semana nueva. Podés ajustarlo cada semana desde la pantalla Semana.</p>
+      <div class="field-row">
+        <div class="field"><label>Mañana desde</label><input type="time" id="def-m1" value="08:00"></div>
+        <div class="field"><label>hasta</label><input type="time" id="def-m2" value="12:00"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Tarde desde</label><input type="time" id="def-t1" value="16:00"></div>
+        <div class="field"><label>hasta</label><input type="time" id="def-t2" value="20:00"></div>
+      </div>
+      <button class="btn btn-primary btn-block" id="btnSaveSchedule">Guardar</button>
+    </div>
+  </div>
+
+  <!-- ===================== SHEET: NOMBRE DEL NEGOCIO ===================== -->
+  <div class="sheet-backdrop" id="sheetSalonName">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-top"><h3>Nombre del negocio</h3><button class="sheet-close" data-close="sheetSalonName">✕</button></div>
+      <div class="field"><input type="text" id="f-salonName" placeholder="Ej: Peluquería Marisa"></div>
+      <button class="btn btn-primary btn-block" id="btnSaveSalonName">Guardar</button>
+    </div>
+  </div>
+
+  <!-- ===================== SHEET: MENSAJE WHATSAPP ===================== -->
+  <div class="sheet-backdrop" id="sheetMessage">
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-top"><h3>Mensaje de recordatorio</h3><button class="sheet-close" data-close="sheetMessage">✕</button></div>
+      <p style="font-size:11.5px; color:var(--muted); margin-top:0;">Usá [nombre], [dia] y [hora] donde quieras que se reemplacen los datos del turno.</p>
+      <div class="field"><textarea id="f-message" style="min-height:100px;"></textarea></div>
+      <button class="btn btn-primary btn-block" id="btnSaveMessage">Guardar</button>
+    </div>
+  </div>
+
+  <!-- ===================== CONFIRM DIALOG ===================== -->
+  <div class="sheet-backdrop" id="sheetConfirm">
+    <div class="sheet confirm-box">
+      <div class="sheet-handle"></div>
+      <div class="confirm-icon">⚠</div>
+      <h3 id="confirmTitle">¿Eliminar?</h3>
+      <p style="font-size:13px; color:var(--muted);" id="confirmSub">Esta acción no se puede deshacer.</p>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" data-close="sheetConfirm">Cancelar</button>
+        <button class="btn btn-danger" id="btnConfirmYes">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   DATOS / PERSISTENCIA
+   ============================================================ */
+const STORAGE_KEY = 'peluqueria_app_data_v1';
+
+function defaultData(){
+  return {
+    theme: 'light',
+    salonName: 'Turnos',
+    reminderMessage: 'Hola [nombre]! Te recordamos tu turno en [negocio] mañana [dia] a las [hora]. Cualquier cambio, avisanos. Te esperamos!',
+    defaultSchedule: { m1:'08:00', m2:'12:00', t1:'16:00', t2:'20:00' },
+    weekSchedules: {}, // keyed by week-start iso date -> {m1,m2,t1,t2}
+    closedDays: {},    // keyed by iso date -> reason string
+    clients: [],        // {id,name,phone,notes}
+    appointments: []    // {id,date,time,duration,clientId,clientName,phone,service,price,paid}
+  };
+}
+
+let DATA = loadData();
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultData();
+    const parsed = JSON.parse(raw);
+    return Object.assign(defaultData(), parsed);
+  }catch(e){ return defaultData(); }
+}
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA));
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+/* ============================================================
+   FECHAS / HELPERS
+   ============================================================ */
+const DIAS_SEMANA = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_CORTO = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+function isoDate(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function todayIso(){ return isoDate(new Date()); }
+function fromIso(iso){ const [y,m,d]=iso.split('-').map(Number); return new Date(y,m-1,d); }
+function toMin(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+function toLabel(min){ const h=Math.floor(min/60), m=min%60; return h+':'+(m===0?'00':String(m).padStart(2,'0')); }
+function addMinutesToLabel(label, mins){ return toLabel(toMin(label)+mins); }
+
+// Devuelve el lunes de la semana de una fecha, como iso string (usamos lunes como clave de semana aunque el negocio trabaje mar-sáb)
+function weekStartIso(d){
+  const dd = new Date(d);
+  const day = dd.getDay(); // 0=dom
+  const diff = (day===0? -6 : 1-day);
+  dd.setDate(dd.getDate()+diff);
+  return isoDate(dd);
+}
+function getWeekSchedule(weekStart){
+  return DATA.weekSchedules[weekStart] || Object.assign({}, DATA.defaultSchedule);
+}
+function setWeekSchedule(weekStart, sched){
+  DATA.weekSchedules[weekStart] = sched;
+  saveData();
+}
+function moneyFmt(n){
+  n = Number(n)||0;
+  return '$' + n.toLocaleString('es-AR');
+}
+
+/* Genera slots de media hora para un horario dado {m1,m2,t1,t2} */
+function buildSlots(sched){
+  const slots=[];
+  for(let x=toMin(sched.m1); x<toMin(sched.m2); x+=30) slots.push(toLabel(x));
+  for(let x=toMin(sched.t1); x<toMin(sched.t2); x+=30) slots.push(toLabel(x));
+  return slots;
+}
+
+/* Franjas de media hora que ocupa un turno según su duración */
+function slotsForAppt(appt){
+  const n = appt.duration/30;
+  const out=[];
+  let t = appt.time;
+  for(let i=0;i<n;i++){ out.push(t); t = addMinutesToLabel(t,30); }
+  return out;
+}
+
+function apptsForDate(iso){
+  return DATA.appointments.filter(a=>a.date===iso).sort((a,b)=>toMin(a.time)-toMin(b.time));
+}
+
+function initials(name){
+  return name.trim().split(/\s+/).map(p=>p[0]).slice(0,2).join('').toUpperCase();
+}
+
+/* ============================================================
+   NAVEGACIÓN ENTRE VISTAS
+   ============================================================ */
+const views = ['hoy','semana','clientes','balance','ajustes'];
+function showView(name){
+  views.forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('active', v===name);
+  });
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.view===name);
+  });
+  if(name==='hoy') renderHoy();
+  if(name==='semana') renderSemana();
+  if(name==='clientes') renderClientes();
+  if(name==='balance') renderBalance();
+  if(name==='ajustes') renderAjustes();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>showView(btn.dataset.view));
+});
+
+/* ============================================================
+   SHEETS (modales)
+   ============================================================ */
+function openSheet(id){
+  document.getElementById(id).classList.add('show');
+}
+function closeSheet(id){
+  document.getElementById(id).classList.remove('show');
+}
+document.querySelectorAll('[data-close]').forEach(el=>{
+  el.addEventListener('click', ()=>closeSheet(el.dataset.close));
+});
+document.querySelectorAll('.sheet-backdrop').forEach(bd=>{
+  bd.addEventListener('click', (e)=>{ if(e.target===bd) bd.classList.remove('show'); });
+});
+
+/* ============================================================
+   RENDER: HOY
+   ============================================================ */
+function renderHoy(searchTerm){
+  const iso = todayIso();
+  const d = new Date();
+  document.getElementById('hoyTitle').textContent = 'Hoy';
+  document.getElementById('hoySub').textContent = DIAS_SEMANA[d.getDay()]+' '+d.getDate()+' de '+d.toLocaleDateString('es-AR',{month:'long'});
+
+  let appts = apptsForDate(iso);
+  if(searchTerm){
+    const q = searchTerm.toLowerCase();
+    appts = appts.filter(a=>a.clientName.toLowerCase().includes(q));
+  }
+
+  const closedReason = DATA.closedDays[iso];
+  const list = document.getElementById('hoyList');
+  list.innerHTML='';
+
+  if(closedReason!==undefined){
+    list.innerHTML = `<div class="empty-state">🔒 Cerrado hoy${closedReason? ' · '+escapeHtml(closedReason):''}</div>`;
+  } else if(appts.length===0){
+    list.innerHTML = `<div class="empty-state">No hay turnos ${searchTerm?'que coincidan':'cargados para hoy'}.</div>`;
+  } else {
+    const sched = getWeekSchedule(weekStartIso(d));
+    const allSlots = buildSlots(sched);
+    let lastEnd = null;
+    appts.forEach(a=>{
+      // gap libre antes de este turno
+      if(!searchTerm){
+        const idx = allSlots.indexOf(a.time);
+        const prevIdx = lastEnd? allSlots.indexOf(lastEnd) : -1;
+        if(idx > prevIdx+1 && prevIdx>=0){
+          list.innerHTML += `<div class="free-gap">Libre ${allSlots[prevIdx+1]} - ${a.time}</div>`;
+        }
+        // pausa de mediodía
+        if(lastEnd && toMin(lastEnd) < toMin(sched.m2) && toMin(a.time) >= toMin(sched.t1)){
+          list.innerHTML += `<div class="pause-note">Pausa de mediodía</div>`;
+        }
+      }
+      const card = document.createElement('div');
+      card.className='appt-card';
+      card.innerHTML = `
+        <div class="appt-time">${a.time}</div>
+        <div class="appt-info" style="flex:1;">
+          <p class="appt-client">${escapeHtml(a.clientName)}</p>
+          <p class="appt-service">${escapeHtml(a.service||'')}</p>
+        </div>
+        <span style="color:var(--muted);">›</span>`;
+      card.addEventListener('click', ()=>openClientFromAppt(a));
+      list.appendChild(card);
+      lastEnd = slotsForAppt(a).slice(-1)[0];
+    });
+  }
+
+  const cobrado = appts.filter(a=>a.paid).reduce((s,a)=>s+(Number(a.price)||0),0);
+  const pendiente = appts.filter(a=>!a.paid).reduce((s,a)=>s+(Number(a.price)||0),0);
+  document.getElementById('hoySummary').textContent =
+    `${appts.length} turno${appts.length===1?'':'s'} hoy · ${moneyFmt(cobrado)} cobrado, ${moneyFmt(pendiente)} pendiente`;
+}
+document.getElementById('hoySearch').addEventListener('input', (e)=>renderHoy(e.target.value));
+
+function openClientFromAppt(appt){
+  let client = DATA.clients.find(c=>c.id===appt.clientId);
+  if(!client){
+    client = {id: appt.clientId || uid(), name: appt.clientName, phone: appt.phone||'', notes:''};
+  }
+  openClientDetail(client, appt);
+}
+
+/* ============================================================
+   RENDER: SEMANA
+   ============================================================ */
+let currentWeekStart = weekStartIso(new Date());
+
+function renderSemana(){
+  const sched = getWeekSchedule(currentWeekStart);
+  document.getElementById('cfg-m1').value = sched.m1;
+  document.getElementById('cfg-m2').value = sched.m2;
+  document.getElementById('cfg-t1').value = sched.t1;
+  document.getElementById('cfg-t2').value = sched.t2;
+
+  // días martes a sábado de esta semana (currentWeekStart es lunes)
+  const monday = fromIso(currentWeekStart);
+  const days = [];
+  for(let i=1;i<=5;i++){ // martes(1) .. sábado(5)
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    days.push(d);
+  }
+  const first = days[0], last = days[days.length-1];
+  document.getElementById('weekRange').textContent =
+    `${DIAS_CORTO[first.getDay()]} ${first.getDate()} al ${DIAS_CORTO[last.getDay()]} ${last.getDate()} de ${last.toLocaleDateString('es-AR',{month:'long'})}`;
+
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML='';
+  grid.style.gridTemplateColumns = `44px repeat(${days.length}, 70px)`;
+  grid.style.minWidth = (44 + days.length*70)+'px';
+
+  grid.appendChild(document.createElement('div'));
+  days.forEach(d=>{
+    const iso = isoDate(d);
+    const isClosed = DATA.closedDays[iso]!==undefined;
+    const cell = document.createElement('div');
+    cell.className='g-headcell';
+    if(isClosed) cell.style.cssText='background:var(--closed);';
+    cell.textContent = DIAS_CORTO[d.getDay()]+' '+d.getDate();
+    cell.addEventListener('click', ()=>openDaySheet(iso));
+    grid.appendChild(cell);
+  });
+
+  const slots = buildSlots(sched);
+  slots.forEach(t=>{
+    const label = document.createElement('div');
+    label.className='g-timecell';
+    label.textContent=t;
+    grid.appendChild(label);
+
+    days.forEach(d=>{
+      const iso = isoDate(d);
+      const isClosed = DATA.closedDays[iso]!==undefined;
+      const cell = document.createElement('div');
+      cell.className='g-slot';
+      if(isClosed){
+        cell.style.background='var(--closed)';
+      } else {
+        const appt = findApptCovering(iso, t);
+        if(appt){
+          cell.style.background='var(--busy)';
+          cell.textContent = initials(appt.clientName);
+          cell.addEventListener('click', ()=>openClientFromAppt(appt));
+        } else {
+          cell.style.background='var(--paper-2)';
+          cell.addEventListener('click', ()=>openNewTurnoAt(iso, t));
+        }
+      }
+      grid.appendChild(cell);
+    });
+  });
+}
+function findApptCovering(iso, time){
+  const appts = apptsForDate(iso);
+  for(const a of appts){
+    if(slotsForAppt(a).includes(time)) return a;
+  }
+  return null;
+}
+document.getElementById('weekPrev').addEventListener('click', ()=>{
+  const d = fromIso(currentWeekStart);
+  d.setDate(d.getDate()+7);
+  currentWeekStart = isoDate(d);
+  renderSemana();
+});
+['cfg-m1','cfg-m2','cfg-t1','cfg-t2'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', ()=>{
+    setWeekSchedule(currentWeekStart, {
+      m1: document.getElementById('cfg-m1').value,
+      m2: document.getElementById('cfg-m2').value,
+      t1: document.getElementById('cfg-t1').value,
+      t2: document.getElementById('cfg-t2').value,
+    });
+    renderSemana();
+  });
+});
+
+/* ---- sheet día cerrado ---- */
+let dayBeingEdited = null;
+function openDaySheet(iso){
+  dayBeingEdited = iso;
+  const d = fromIso(iso);
+  document.getElementById('daySheetTitle').textContent = DIAS_SEMANA[d.getDay()]+' '+d.getDate();
+  const closed = DATA.closedDays[iso];
+  setToggle('dayClosedToggle', closed!==undefined);
+  document.getElementById('f-closedReason').value = closed || '';
+  openSheet('sheetDay');
+}
+document.getElementById('dayClosedToggle').addEventListener('click', function(){
+  toggleToggle(this);
+});
+document.getElementById('btnSaveDay').addEventListener('click', ()=>{
+  const on = document.getElementById('dayClosedToggle').classList.contains('on');
+  const reason = document.getElementById('f-closedReason').value.trim();
+  const appts = apptsForDate(dayBeingEdited);
+  if(on && appts.length>0){
+    document.getElementById('confirmTitle').textContent = 'Cerrar día con turnos';
+    document.getElementById('confirmSub').textContent = `Este día tiene ${appts.length} turno(s) reservado(s). ¿Confirmás que querés cerrarlo? Los turnos no se eliminan.`;
+    confirmAction(()=>{
+      DATA.closedDays[dayBeingEdited] = reason;
+      saveData(); closeSheet('sheetDay'); closeSheet('sheetConfirm'); renderSemana();
+    });
+    return;
+  }
+  if(on){ DATA.closedDays[dayBeingEdited] = reason; }
+  else { delete DATA.closedDays[dayBeingEdited]; }
+  saveData();
+  closeSheet('sheetDay');
+  renderSemana();
+});
+
+/* toggle helper genérico */
+function setToggle(id, on){
+  document.getElementById(id).classList.toggle('on', on);
+}
+function toggleToggle(el){
+  el.classList.toggle('on');
+}
+
+/* ============================================================
+   NUEVO TURNO
+   ============================================================ */
+let editingApptId = null;
+
+function fillTimeOptions(sched, selected){
+  const sel = document.getElementById('f-time');
+  sel.innerHTML='';
+  buildSlots(sched).forEach(t=>{
+    const opt = document.createElement('option');
+    opt.value=t; opt.textContent=t;
+    sel.appendChild(opt);
+  });
+  if(selected) sel.value = selected;
+}
+
+function openNewTurnoAt(iso, time){
+  editingApptId = null;
+  document.getElementById('turnoSheetTitle').textContent = 'Nuevo turno';
+  document.getElementById('btnDeleteTurno').classList.add('hidden');
+  document.getElementById('overlapWarning').classList.add('hidden');
+  document.getElementById('f-clientName').value='';
+  document.getElementById('f-clientPhone').value='';
+  document.getElementById('f-service').value='';
+  document.getElementById('f-price').value='';
+  document.getElementById('f-date').value = iso || todayIso();
+  const sched = getWeekSchedule(weekStartIso(fromIso(iso||todayIso())));
+  fillTimeOptions(sched, time);
+  document.getElementById('f-duration').value='30';
+  updateDurationHint();
+  refreshClientDatalist();
+  openSheet('sheetTurno');
+}
+document.getElementById('fabAdd').addEventListener('click', ()=>openNewTurnoAt(todayIso(), null));
+
+function openEditTurno(appt){
+  editingApptId = appt.id;
+  document.getElementById('turnoSheetTitle').textContent = 'Editar turno';
+  document.getElementById('btnDeleteTurno').classList.remove('hidden');
+  document.getElementById('overlapWarning').classList.add('hidden');
+  document.getElementById('f-clientName').value = appt.clientName;
+  document.getElementById('f-clientPhone').value = appt.phone||'';
+  document.getElementById('f-service').value = appt.service||'';
+  document.getElementById('f-price').value = appt.price||'';
+  document.getElementById('f-date').value = appt.date;
+  const sched = getWeekSchedule(weekStartIso(fromIso(appt.date)));
+  fillTimeOptions(sched, appt.time);
+  document.getElementById('f-duration').value = String(appt.duration||30);
+  updateDurationHint();
+  refreshClientDatalist();
+  openSheet('sheetTurno');
+}
+
+function updateDurationHint(){
+  const mins = Number(document.getElementById('f-duration').value);
+  const time = document.getElementById('f-time').value;
+  if(!time) return;
+  const end = addMinutesToLabel(time, mins);
+  const n = mins/30;
+  document.getElementById('durationHint').textContent =
+    `⏱ Ocupa ${n} franja${n===1?'':'s'} de media hora (${time} a ${end})`;
+}
+document.getElementById('f-duration').addEventListener('change', updateDurationHint);
+document.getElementById('f-time').addEventListener('change', updateDurationHint);
+document.getElementById('f-date').addEventListener('change', ()=>{
+  const iso = document.getElementById('f-date').value;
+  const sched = getWeekSchedule(weekStartIso(fromIso(iso)));
+  fillTimeOptions(sched, document.getElementById('f-time').value);
+  updateDurationHint();
+});
+
+function refreshClientDatalist(){
+  const dl = document.getElementById('clientNamesList');
+  dl.innerHTML = DATA.clients.map(c=>`<option value="${escapeHtml(c.name)}">`).join('');
+}
+document.getElementById('f-clientName').addEventListener('input', (e)=>{
+  const existing = DATA.clients.find(c=>c.name.toLowerCase()===e.target.value.trim().toLowerCase());
+  if(existing) document.getElementById('f-clientPhone').value = existing.phone||'';
+});
+
+document.getElementById('btnPickContact').addEventListener('click', async ()=>{
+  if('contacts' in navigator && 'ContactsManager' in window){
+    try{
+      const props = ['name','tel'];
+      const contacts = await navigator.contacts.select(props, {multiple:false});
+      if(contacts && contacts[0]){
+        const c = contacts[0];
+        if(c.name && c.name[0]) document.getElementById('f-clientName').value = c.name[0];
+        if(c.tel && c.tel[0]) document.getElementById('f-clientPhone').value = c.tel[0];
+      }
+    }catch(e){ /* usuario canceló o no soportado */ }
+  } else {
+    showToast('Elegir de contactos solo está disponible en Chrome para Android');
+  }
+});
+
+function overlapsExisting(iso, time, duration, excludeId){
+  const newSlots = slotsForAppt({time, duration});
+  return DATA.appointments.some(a=>{
+    if(a.date!==iso) return false;
+    if(a.id===excludeId) return false;
+    const aSlots = slotsForAppt(a);
+    return newSlots.some(s=>aSlots.includes(s));
+  });
+}
+
+document.getElementById('btnSaveTurno').addEventListener('click', ()=>{
+  const name = document.getElementById('f-clientName').value.trim();
+  if(!name){ showToast('Ingresá el nombre del cliente'); return; }
+  const phone = document.getElementById('f-clientPhone').value.trim();
+  const service = document.getElementById('f-service').value.trim();
+  const price = document.getElementById('f-price').value;
+  const date = document.getElementById('f-date').value;
+  const time = document.getElementById('f-time').value;
+  const duration = Number(document.getElementById('f-duration').value);
+
+  if(overlapsExisting(date, time, duration, editingApptId)){
+    document.getElementById('overlapWarning').classList.remove('hidden');
+    return;
+  }
+
+  let client = DATA.clients.find(c=>c.name.toLowerCase()===name.toLowerCase());
+  if(!client){
+    client = {id:uid(), name, phone, notes:''};
+    DATA.clients.push(client);
+  } else if(phone){
+    client.phone = phone;
+  }
+
+  if(editingApptId){
+    const appt = DATA.appointments.find(a=>a.id===editingApptId);
+    Object.assign(appt, {clientId:client.id, clientName:name, phone, service, price, date, time, duration});
+  } else {
+    DATA.appointments.push({
+      id: uid(), clientId:client.id, clientName:name, phone, service, price,
+      date, time, duration, paid:false
+    });
+  }
+  saveData();
+  closeSheet('sheetTurno');
+  renderHoy(); renderSemana(); renderClientes(); renderBalance();
+});
+
+document.getElementById('btnDeleteTurno').addEventListener('click', ()=>{
+  document.getElementById('confirmTitle').textContent = 'Eliminar turno';
+  document.getElementById('confirmSub').textContent = 'Esta acción no se puede deshacer.';
+  confirmAction(()=>{
+    DATA.appointments = DATA.appointments.filter(a=>a.id!==editingApptId);
+    saveData();
+    closeSheet('sheetConfirm'); closeSheet('sheetTurno');
+    renderHoy(); renderSemana(); renderClientes(); renderBalance();
+  });
+});
+
+/* ============================================================
+   CLIENTES
+   ============================================================ */
+function renderClientes(searchTerm){
+  const list = document.getElementById('clientList');
+  let clients = [...DATA.clients];
+  if(searchTerm){
+    const q = searchTerm.toLowerCase();
+    clients = clients.filter(c=>c.name.toLowerCase().includes(q));
+  }
+  clients.sort((a,b)=>a.name.localeCompare(b.name));
+  list.innerHTML='';
+  if(clients.length===0){
+    list.innerHTML = `<div class="empty-state">Todavía no hay clientes cargados.</div>`;
+    return;
+  }
+  clients.forEach(c=>{
+    const appts = DATA.appointments.filter(a=>a.clientId===c.id).sort((a,b)=> b.date.localeCompare(a.date));
+    const last = appts[0];
+    const pending = appts.some(a=>!a.paid);
+    const row = document.createElement('div');
+    row.className='list-row';
+    row.innerHTML = `
+      <div class="avatar">${initials(c.name)}</div>
+      <div style="flex:1;">
+        <p style="margin:0; font-size:14px; font-weight:600;">${escapeHtml(c.name)}</p>
+        <p style="margin:0; font-size:12px; color:var(--muted);">${last? 'Último turno: '+relDate(last.date) : 'Sin turnos'}</p>
+      </div>
+      ${pending? '<span class="chip chip-pending">Pendiente</span>':''}
+      <span style="color:var(--muted);">›</span>`;
+    row.addEventListener('click', ()=>openClientDetail(c, last));
+    list.appendChild(row);
+  });
+}
+document.getElementById('clientSearch').addEventListener('input', e=>renderClientes(e.target.value));
+document.getElementById('btnNewClient').addEventListener('click', ()=>{
+  document.getElementById('f-newClientName').value='';
+  document.getElementById('f-newClientPhone').value='';
+  openSheet('sheetNewClient');
+});
+document.getElementById('btnPickContactNew').addEventListener('click', async ()=>{
+  if('contacts' in navigator && 'ContactsManager' in window){
+    try{
+      const contacts = await navigator.contacts.select(['name','tel'], {multiple:false});
+      if(contacts && contacts[0]){
+        const c = contacts[0];
+        if(c.name && c.name[0]) document.getElementById('f-newClientName').value = c.name[0];
+        if(c.tel && c.tel[0]) document.getElementById('f-newClientPhone').value = c.tel[0];
+      }
+    }catch(e){}
+  } else {
+    showToast('Elegir de contactos solo está disponible en Chrome para Android');
+  }
+});
+document.getElementById('btnSaveNewClient').addEventListener('click', ()=>{
+  const name = document.getElementById('f-newClientName').value.trim();
+  if(!name){ showToast('Ingresá el nombre del cliente'); return; }
+  const phone = document.getElementById('f-newClientPhone').value.trim();
+  const client = {id:uid(), name, phone, notes:''};
+  DATA.clients.push(client);
+  saveData();
+  closeSheet('sheetNewClient');
+  renderClientes();
+  openClientDetail(client, null);
+});
+
+function relDate(iso){
+  if(iso===todayIso()) return 'hoy';
+  const d = fromIso(iso);
+  return d.getDate()+' '+d.toLocaleDateString('es-AR',{month:'short'});
+}
+
+/* ---- detalle de cliente ---- */
+let clientBeingViewed = null;
+let apptBeingViewed = null;
+
+function openClientDetail(client, todayOrLastAppt){
+  clientBeingViewed = client;
+  apptBeingViewed = todayOrLastAppt || null;
+  document.getElementById('clientAvatar').textContent = initials(client.name);
+  document.getElementById('clientDetailName').textContent = client.name;
+  document.getElementById('f-clientDetailPhone').value = client.phone || '';
+  document.getElementById('f-clientNotes').value = client.notes || '';
+
+  const today = apptsForDate(todayIso()).find(a=>a.clientId===client.id);
+  const todayBlock = document.getElementById('clientTodayBlock');
+  if(today){
+    todayBlock.classList.remove('hidden');
+    document.getElementById('clientTodayValue').textContent = `${today.time} · ${today.service||'Sin servicio'}`;
+    apptBeingViewed = today;
+  } else {
+    todayBlock.classList.add('hidden');
+  }
+
+  const hist = DATA.appointments.filter(a=>a.clientId===client.id).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('clientHistCount').textContent = hist.length;
+  const histEl = document.getElementById('clientHistList');
+  histEl.innerHTML = hist.slice(0,8).map(a=>`
+    <div class="hist-row">
+      <span>${relDateLong(a.date)} · ${escapeHtml(a.service||'—')}</span>
+      <span style="color:var(--muted);">${a.price? moneyFmt(a.price):''}</span>
+    </div>`).join('') || '<div class="empty-state" style="padding:14px 0;">Sin turnos anteriores</div>';
+
+  openSheet('sheetCliente');
+}
+function relDateLong(iso){
+  const d = fromIso(iso);
+  return d.getDate()+' '+d.toLocaleDateString('es-AR',{month:'short'});
+}
+
+document.getElementById('btnPickContactDetail').addEventListener('click', async ()=>{
+  if('contacts' in navigator && 'ContactsManager' in window){
+    try{
+      const contacts = await navigator.contacts.select(['name','tel'], {multiple:false});
+      if(contacts && contacts[0]){
+        const c = contacts[0];
+        if(c.tel && c.tel[0]) document.getElementById('f-clientDetailPhone').value = c.tel[0];
+      }
+    }catch(e){}
+  } else {
+    showToast('Elegir de contactos solo está disponible en Chrome para Android');
+  }
+});
+
+document.getElementById('btnSaveClientNotes').addEventListener('click', ()=>{
+  clientBeingViewed.notes = document.getElementById('f-clientNotes').value.trim();
+  clientBeingViewed.phone = document.getElementById('f-clientDetailPhone').value.trim();
+  saveData();
+  closeSheet('sheetCliente');
+  renderClientes();
+  showToast('Cliente actualizado');
+});
+
+document.getElementById('btnDeleteClient').addEventListener('click', ()=>{
+  document.getElementById('confirmTitle').textContent = 'Eliminar cliente';
+  document.getElementById('confirmSub').textContent = 'Se eliminará el cliente. Sus turnos ya cargados no se borran, pero quedarán sin ficha asociada.';
+  confirmAction(()=>{
+    DATA.clients = DATA.clients.filter(c=>c.id!==clientBeingViewed.id);
+    saveData();
+    closeSheet('sheetConfirm'); closeSheet('sheetCliente');
+    renderClientes(); renderHoy();
+  });
+});
+
+document.getElementById('btnWhatsapp').addEventListener('click', ()=>{
+  const c = clientBeingViewed;
+  const phone = document.getElementById('f-clientDetailPhone').value.trim();
+  if(!phone){ showToast('Cargá un teléfono para este cliente'); return; }
+  c.phone = phone; saveData();
+  const appt = apptBeingViewed;
+  let dia = appt? DIAS_SEMANA[fromIso(appt.date).getDay()] : '';
+  let hora = appt? appt.time : '';
+  let msg = DATA.reminderMessage
+    .replace('[nombre]', c.name.split(' ')[0])
+    .replace('[negocio]', DATA.salonName)
+    .replace('[dia]', dia)
+    .replace('[hora]', hora);
+  const phoneDigits = phone.replace(/[^0-9]/g,'');
+  const url = `https://wa.me/${phoneDigits}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+});
+
+/* ============================================================
+   BALANCE
+   ============================================================ */
+let balanceRange = 'week';
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    balanceRange = btn.dataset.range;
+    renderBalance();
+  });
+});
+
+function renderBalance(){
+  const today = todayIso();
+  const todayAppts = apptsForDate(today);
+  const hoyCobrado = todayAppts.filter(a=>a.paid).reduce((s,a)=>s+(Number(a.price)||0),0);
+  const hoyPendiente = todayAppts.filter(a=>!a.paid).reduce((s,a)=>s+(Number(a.price)||0),0);
+  document.getElementById('balHoyCobrado').textContent = moneyFmt(hoyCobrado);
+  document.getElementById('balHoyPendiente').textContent = moneyFmt(hoyPendiente);
+
+  const now = new Date();
+  let rangeAppts;
+  if(balanceRange==='week'){
+    const start = fromIso(weekStartIso(now));
+    const end = new Date(start); end.setDate(start.getDate()+7);
+    rangeAppts = DATA.appointments.filter(a=>{
+      const d = fromIso(a.date); return d>=start && d<end;
+    });
+  } else {
+    rangeAppts = DATA.appointments.filter(a=>{
+      const d = fromIso(a.date); return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+    });
+  }
+  const cobrado = rangeAppts.filter(a=>a.paid).reduce((s,a)=>s+(Number(a.price)||0),0);
+  const pendiente = rangeAppts.filter(a=>!a.paid).reduce((s,a)=>s+(Number(a.price)||0),0);
+  document.getElementById('balCobrado').textContent = moneyFmt(cobrado);
+  document.getElementById('balPendiente').textContent = moneyFmt(pendiente);
+  document.getElementById('balCount').textContent = rangeAppts.length;
+
+  const pendingAll = DATA.appointments.filter(a=>!a.paid).sort((a,b)=>b.date.localeCompare(a.date));
+  const pl = document.getElementById('pendingList');
+  pl.innerHTML='';
+  if(pendingAll.length===0){
+    pl.innerHTML = '<div class="empty-state">No hay cobros pendientes 🎉</div>';
+  } else {
+    pendingAll.forEach(a=>{
+      const row = document.createElement('div');
+      row.className='appt-card';
+      row.innerHTML = `
+        <div style="flex:1;">
+          <p class="appt-client">${escapeHtml(a.clientName)}</p>
+          <p class="appt-service">${escapeHtml(a.service||'')} · ${relDate(a.date)}</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="margin:0; font-weight:700;">${moneyFmt(a.price||0)}</p>
+          <button class="btn btn-sm btn-primary" style="margin-top:4px;">Marcar pagado</button>
+        </div>`;
+      row.querySelector('button').addEventListener('click', (e)=>{
+        e.stopPropagation();
+        a.paid = true; saveData(); renderBalance(); renderHoy();
+      });
+      pl.appendChild(row);
+    });
+  }
+}
+
+/* ============================================================
+   AJUSTES
+   ============================================================ */
+function renderAjustes(){
+  const dark = DATA.theme==='dark';
+  setToggle('themeToggle', dark);
+  document.getElementById('themeLabel').textContent = dark? 'Modo oscuro' : 'Modo claro';
+  const s = DATA.defaultSchedule;
+  document.getElementById('scheduleSub').textContent = `${s.m1}-${s.m2} y ${s.t1}-${s.t2}`;
+  document.getElementById('salonNameSub').textContent = DATA.salonName;
+}
+document.getElementById('themeToggle').addEventListener('click', function(){
+  DATA.theme = DATA.theme==='dark' ? 'light' : 'dark';
+  applyTheme();
+  saveData();
+  renderAjustes();
+});
+function applyTheme(){
+  document.body.setAttribute('data-theme', DATA.theme);
+}
+
+document.getElementById('btnBackup').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(DATA,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `backup-${DATA.salonName.replace(/\s+/g,'-')}-${todayIso()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  document.getElementById('backupSub').textContent = 'Descargado';
+  setTimeout(()=>document.getElementById('backupSub').textContent='Descarga tus datos', 2000);
+});
+document.getElementById('btnRestore').addEventListener('click', ()=>{
+  document.getElementById('restoreFile').click();
+});
+document.getElementById('restoreFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const parsed = JSON.parse(ev.target.result);
+      document.getElementById('confirmTitle').textContent = 'Restaurar backup';
+      document.getElementById('confirmSub').textContent = 'Esto reemplaza todos los datos actuales por los del archivo. ¿Continuar?';
+      confirmAction(()=>{
+        DATA = Object.assign(defaultData(), parsed);
+        saveData(); applyTheme(); updateBrandName();
+        closeSheet('sheetConfirm');
+        showView('hoy');
+      });
+    }catch(err){ showToast('El archivo no es un backup válido'); }
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('btnSchedule').addEventListener('click', ()=>{
+  const s = DATA.defaultSchedule;
+  document.getElementById('def-m1').value = s.m1;
+  document.getElementById('def-m2').value = s.m2;
+  document.getElementById('def-t1').value = s.t1;
+  document.getElementById('def-t2').value = s.t2;
+  openSheet('sheetSchedule');
+});
+document.getElementById('btnSaveSchedule').addEventListener('click', ()=>{
+  DATA.defaultSchedule = {
+    m1: document.getElementById('def-m1').value,
+    m2: document.getElementById('def-m2').value,
+    t1: document.getElementById('def-t1').value,
+    t2: document.getElementById('def-t2').value,
+  };
+  saveData();
+  closeSheet('sheetSchedule');
+  renderAjustes();
+});
+
+document.getElementById('btnSalonName').addEventListener('click', ()=>{
+  document.getElementById('f-salonName').value = DATA.salonName;
+  openSheet('sheetSalonName');
+});
+document.getElementById('btnSaveSalonName').addEventListener('click', ()=>{
+  const v = document.getElementById('f-salonName').value.trim();
+  if(v) DATA.salonName = v;
+  saveData();
+  closeSheet('sheetSalonName');
+  renderAjustes();
+  updateBrandName();
+});
+function updateBrandName(){
+  document.getElementById('brandName').textContent = DATA.salonName || 'Turnos';
+  document.title = (DATA.salonName || 'Turnos') + ' · Peluquería & Barbería';
+}
+
+document.getElementById('btnMessage').addEventListener('click', ()=>{
+  document.getElementById('f-message').value = DATA.reminderMessage;
+  openSheet('sheetMessage');
+});
+document.getElementById('btnSaveMessage').addEventListener('click', ()=>{
+  DATA.reminderMessage = document.getElementById('f-message').value;
+  saveData();
+  closeSheet('sheetMessage');
+});
+
+/* ============================================================
+   CONFIRM DIALOG genérico
+   ============================================================ */
+let confirmCallback = null;
+function confirmAction(cb){
+  confirmCallback = cb;
+  openSheet('sheetConfirm');
+}
+document.getElementById('btnConfirmYes').addEventListener('click', ()=>{
+  if(confirmCallback) confirmCallback();
+});
+
+/* ============================================================
+   UTIL
+   ============================================================ */
+function escapeHtml(str){
+  return String(str||'').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+applyTheme();
+updateBrandName();
+renderHoy();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
